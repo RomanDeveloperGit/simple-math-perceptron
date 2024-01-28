@@ -21,16 +21,16 @@ class PerceptronNeuralNetwork {
   }
 
   calculateRawOutput(input) {
-    return input * this.weight + this.bias;
+    return input * this.weight;
   }
 
   // Заглушка
-  activateOutput(value) {
-    return value;
+  activateOutput(rawOutput) {
+    return rawOutput;
   }
 
   predictOutput(input) {
-    return this.activateOutput(this.calculateRawOutput(input));
+    return this.activateOutput(this.calculateRawOutput(input)) + this.bias;
   }
 
   executeEpoch(dataset) {
@@ -64,9 +64,12 @@ class PerceptronNeuralNetwork {
 }
 
 const executeEpochsWithBiasAdjustment = (
+  perceptronNeuralNetwork,
   epochCount = 1,
-  additionalDescription = ""
+  iterationCallback
 ) => {
+  const startBias = perceptronNeuralNetwork.bias;
+
   for (let i = 1; i < epochCount; i++) {
     const epochResult = perceptronNeuralNetwork.executeEpoch(dataset);
 
@@ -76,31 +79,68 @@ const executeEpochsWithBiasAdjustment = (
       perceptronNeuralNetwork.bias - epochResult.averageError
     );
 
-    console.log(
-      `после ${i} эпохи предсказание: 3 ${additionalDescription}`,
-      perceptronNeuralNetwork.predictOutput(3)
-    );
-    console.log(
-      `после ${i} эпохи предсказание: 4 ${additionalDescription}`,
-      perceptronNeuralNetwork.predictOutput(4)
-    );
+    iterationCallback(i);
   }
+
+  return {
+    startBias,
+    finalBias: perceptronNeuralNetwork.bias,
+  };
+};
+
+const recalculateWeight = (perceptronNeuralNetwork, startBias) => {
+  const biasesDiff = perceptronNeuralNetwork.bias - startBias;
+
+  perceptronNeuralNetwork.setWeight(
+    perceptronNeuralNetwork.weight - biasesDiff
+  );
 };
 
 // TEST: подготавливаем данные
 const MULTIPLIER = 3;
-const dataset = Array.from({ length: 10000 }, (_, index) => {
+const dataset = Array.from({ length: 100000 }, (_, index) => {
   // для нормализации данных
-  const input = index / 1000;
+  const input = index / 10000;
 
   return [input, input * MULTIPLIER];
 });
 
-// TEST: создаем перцептрон и гоняем эпохи с корректировками байса
+// TEST: создаем перцептрон и делаем первое предсказание
 const perceptronNeuralNetwork = new PerceptronNeuralNetwork(1.5, 1.5);
 console.log(perceptronNeuralNetwork);
 
 console.log("Стартовые предсказания", perceptronNeuralNetwork.predictOutput(3));
 console.log("Стартовые предсказания", perceptronNeuralNetwork.predictOutput(4));
 
-executeEpochsWithBiasAdjustment(4, `* ${MULTIPLIER} ->`);
+// Гоняем эпохи и делаем предсказания:
+const iterationCallback = (epochIndex) => {
+  console.log(
+    `после ${epochIndex} эпохи предсказание: 3 * ${MULTIPLIER} ->`,
+    perceptronNeuralNetwork.predictOutput(3)
+  );
+  console.log(
+    `после ${epochIndex} эпохи предсказание: 4 * ${MULTIPLIER} ->`,
+    perceptronNeuralNetwork.predictOutput(4)
+  );
+};
+
+const epochsResult1 = executeEpochsWithBiasAdjustment(
+  perceptronNeuralNetwork,
+  4,
+  iterationCallback
+);
+
+console.log({ epochsResult1 });
+
+recalculateWeight(perceptronNeuralNetwork, epochsResult1.startBias);
+
+const epochsResult2 = executeEpochsWithBiasAdjustment(
+  perceptronNeuralNetwork,
+  4,
+  iterationCallback
+);
+
+console.log({ epochsResult2 });
+
+// Если число мелкое, то не корень извлекаем, а в квадрат возводим.
+// Деление - умножение. Такие пары чередовать в алгоритме каком-нибудь. Попробовать.
