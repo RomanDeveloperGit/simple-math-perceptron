@@ -40,9 +40,9 @@ class PerceptronNeuralNetwork {
       const receivedOutput = this.predictOutput(input);
       const error = receivedOutput - expectedOutput;
 
-      console.log(
-        `Входящее: ${input}, на выходе получается: ${receivedOutput}, на выходе ожидается: ${expectedOutput}, ошибка: ${error}`
-      );
+      // console.log(
+      //   `Входящее: ${input}, на выходе получается: ${receivedOutput}, на выходе ожидается: ${expectedOutput}, ошибка: ${error}`
+      // );
 
       errorsSum += error;
 
@@ -63,54 +63,44 @@ class PerceptronNeuralNetwork {
   }
 }
 
-// TEST: умножение на 3
-const perceptronNeuralNetwork = new PerceptronNeuralNetwork(2, 4);
-console.log(perceptronNeuralNetwork);
+const executeEpochsWithBiasAdjustment = (
+  epochCount = 1,
+  additionalDescription = ""
+) => {
+  for (let i = 0; i < epochCount; i++) {
+    const epochResult = perceptronNeuralNetwork.executeEpoch(dataset);
 
-const dataset = Array.from({ length: 10 }, (_, index) => {
+    // console.log(epochResult);
+
+    perceptronNeuralNetwork.setBias(
+      perceptronNeuralNetwork.bias - epochResult.averageError
+    );
+
+    console.log(
+      `после ${i} эпохи предсказание: 3 ${additionalDescription}`,
+      perceptronNeuralNetwork.predictOutput(3)
+    );
+    console.log(
+      `после ${i} эпохи предсказание: 4 ${additionalDescription}`,
+      perceptronNeuralNetwork.predictOutput(4)
+    );
+  }
+};
+
+// TEST: подготавливаем данные
+const MULTIPLIER = 3;
+const dataset = Array.from({ length: 10000 }, (_, index) => {
   // для нормализации данных
-  const input = (index + 1) / 100;
+  const input = index / 1000;
 
-  return [input, input * 3];
+  return [input, input * MULTIPLIER];
 });
+
+// TEST: создаем перцептрон и гоняем эпохи с корректировками байса
+const perceptronNeuralNetwork = new PerceptronNeuralNetwork(1.5, 1.5);
+console.log(perceptronNeuralNetwork);
 
 console.log("Стартовые предсказания", perceptronNeuralNetwork.predictOutput(3));
 console.log("Стартовые предсказания", perceptronNeuralNetwork.predictOutput(4));
 
-// 1 эпоха
-const firstEpochResult = perceptronNeuralNetwork.executeEpoch(dataset);
-
-console.log(firstEpochResult);
-
-perceptronNeuralNetwork.setBias(
-  perceptronNeuralNetwork.bias - firstEpochResult.averageError
-);
-
-console.log("после first", perceptronNeuralNetwork.predictOutput(3));
-console.log("после first", perceptronNeuralNetwork.predictOutput(4));
-
-// 2 эпоха
-const secondEpochResult = perceptronNeuralNetwork.executeEpoch(dataset);
-
-console.log(secondEpochResult);
-
-perceptronNeuralNetwork.setBias(
-  perceptronNeuralNetwork.bias - secondEpochResult.averageError
-);
-
-console.log("после second", perceptronNeuralNetwork.predictOutput(3));
-console.log("после second", perceptronNeuralNetwork.predictOutput(4));
-
-// 3 эпоха
-const thirdEpochResult = perceptronNeuralNetwork.executeEpoch(dataset);
-
-console.log(thirdEpochResult);
-
-perceptronNeuralNetwork.setBias(
-  perceptronNeuralNetwork.bias - thirdEpochResult.averageError
-);
-
-console.log("после third", perceptronNeuralNetwork.predictOutput(3));
-console.log("после third", perceptronNeuralNetwork.predictOutput(4));
-
-console.log(perceptronNeuralNetwork);
+executeEpochsWithBiasAdjustment(2, `* ${MULTIPLIER} ->`);
