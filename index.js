@@ -67,7 +67,7 @@ const executeEpochsWithBiasAdjustment = (
   epochCount = 1,
   additionalDescription = ""
 ) => {
-  for (let i = 0; i < epochCount; i++) {
+  for (let i = 1; i < epochCount; i++) {
     const epochResult = perceptronNeuralNetwork.executeEpoch(dataset);
 
     // console.log(epochResult);
@@ -103,4 +103,4 @@ console.log(perceptronNeuralNetwork);
 console.log("Стартовые предсказания", perceptronNeuralNetwork.predictOutput(3));
 console.log("Стартовые предсказания", perceptronNeuralNetwork.predictOutput(4));
 
-executeEpochsWithBiasAdjustment(2, `* ${MULTIPLIER} ->`);
+executeEpochsWithBiasAdjustment(4, `* ${MULTIPLIER} ->`);
